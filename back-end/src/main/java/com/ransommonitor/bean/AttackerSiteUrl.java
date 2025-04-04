@@ -6,12 +6,20 @@ public class AttackerSiteUrl {
     private String URL;
     private boolean status;
     private boolean monitorStatus;
-    private boolean lastScrap;
+    private String lastScrap;
 
 
     public AttackerSiteUrl() {}
 
-    public AttackerSiteUrl(int urlId, int attackerId, String URL, boolean status, boolean monitorStatus, boolean lastScrap) {
+    public AttackerSiteUrl(int urlId, int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap) {
+        this.urlId = urlId;
+        this.attackerId = attackerId;
+        this.URL = URL;
+        this.status = status;
+        this.monitorStatus = monitorStatus;
+        this.lastScrap = lastScrap;
+    }
+    public AttackerSiteUrl(int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap) {
         this.urlId = urlId;
         this.attackerId = attackerId;
         this.URL = URL;
@@ -60,11 +68,11 @@ public class AttackerSiteUrl {
         this.monitorStatus = monitorStatus;
     }
 
-    public boolean isLastScrap() {
+    public String isLastScrap() {
         return lastScrap;
     }
 
-    public void setLastScrap(boolean lastScrap) {
+    public void setLastScrap(String lastScrap) {
         this.lastScrap = lastScrap;
     }
 }

@@ -75,23 +75,18 @@ public class KillsecScrapper implements Scrapper {
                 attack.setDataSizes(sizeMatcher.group(1));
             }
 
-            // Deadline from countdown script
-            Element countdownScript = postLink.select("script").first();
-            if (countdownScript != null) {
-                String scriptText = countdownScript.html();
-                String timestampStr = scriptText.replaceAll(".*?(\\d{10}).*", "$1");
-                try {
-                    long timestamp = Long.parseLong(timestampStr);
-                    attack.setDeadlines(convertTimestampToDate(timestamp));
-                } catch (NumberFormatException e) {
-                    attack.setDeadlines("Unknown deadline");
-                }
-            }
-
-            // Status flags
-            String stat = postLink.attr("stat");
-            attack.setPublished("2".equals(stat));
-            attack.setForSale("1".equals(stat));
+//            // Deadline from countdown script
+//            Element countdownScript = postLink.select("script").first();
+//            if (countdownScript != null) {
+//                String scriptText = countdownScript.html();
+//                String timestampStr = scriptText.replaceAll(".*?(\\d{10}).*", "$1");
+//                try {
+//                    long timestamp = Long.parseLong(timestampStr);
+//                    attack.setDeadlines(convertTimestampToDate(timestamp));
+//                } catch (NumberFormatException e) {
+//                    attack.setDeadlines("Unknown deadline");
+//                }
+//            }
 
 
             // Category from tags
@@ -106,8 +101,6 @@ public class KillsecScrapper implements Scrapper {
                 attack.setCategory("Simple Ransom");
             }
 
-            // Last visited (using current time as approximation)
-            attack.setLastVisitedAt(LocalDateTime.now().format(DATE_FORMATTER));
 
             String postUrl = postLink.absUrl("href");
             Document postPage = Jsoup.connect(postUrl)
@@ -141,19 +134,28 @@ public class KillsecScrapper implements Scrapper {
             // Ransom/sale amounts
             Element paymentElement = vpost.select("brief card.rs h1").first();
             if (paymentElement != null) {
-                String amount = paymentElement.text().replaceAll("[^0-9]", "");
-                if (attack.isForSale()) {
+                String amount = paymentElement.text();
+//                System.out.println(amount);
+                if(amount.equals("€???"))
+                {
+                    attack.setPublished(false);
+                    attack.setForSale(false);
+                }
+                else if(amount.equals("PUBLISHED"))
+                {
+                    attack.setPublished(true);
+                    attack.setForSale(false);
+                }
+                else{
+                    attack.setPublished(false);
+                    attack.setForSale(true);
                     attack.setSaleAmount(amount);
-                } else {
-                    attack.setRansomAmount(amount);
                 }
             }
 
             // Negotiation status (check if price is shown)
             attack.setNegotiated(attack.getRansomAmount() != null || attack.getSaleAmount() != null);
 
-            // Updated at (using current time)
-            attack.setUpdatedAt(LocalDateTime.now().format(DATE_FORMATTER));
 
 
             // Extract and store image
@@ -163,7 +165,6 @@ public class KillsecScrapper implements Scrapper {
             }
 
             // Download URLs
-            attack.setForSale(true);
             for (Element link : vpost.select("disc")) {
                 attack.getDownloadUrls().add(new DownloadUrl(link.attr("href")));
             }

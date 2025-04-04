@@ -1,9 +1,11 @@
 package com.ransommonitor.bean;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Attack {
+public class Attack implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int attackId;
     private Attacker attacker;
     private Victim victim;
@@ -244,4 +246,41 @@ public class Attack {
                 "\n images=" + images +
                 "\n";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Check if the same object reference
+        if (obj == null || getClass() != obj.getClass()) return false; // Check for null and type
+
+        Attack attack = (Attack) obj;
+
+        // Compare selected fields for equality
+        return this.attacker.getAttackerName().equals( attack.attacker.getAttackerName()) &&
+                this.victim.getVictimName().equals( attack.victim.getVictimName() )&&
+                this.description.equals(attack.description) &&
+                this.postedAt.equals(attack.postedAt) &&
+                this.dataSizes.equals(attack.dataSizes);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = attacker.getAttackerName().hashCode();
+        result = 31 * result + victim.getVictimName().hashCode();
+        result = 31 * result + description.hashCode();
+        result = 31 * result + postedAt.hashCode();
+        result = 31 * result + dataSizes.hashCode();
+        return result;
+    }
+
+    public boolean equals2(Attack that)
+    {
+        return this.isPublished==that.isPublished
+                &&this.updatedAt.equals(that.updatedAt)
+                &&this.lastVisitedAt.equals(that.lastVisitedAt)
+                &&this.category.equals(that.category)
+                &&this.noOfVisits == that.noOfVisits
+                &&this.deadlines.equals(that.deadlines)
+                ;
+    }
+
 }

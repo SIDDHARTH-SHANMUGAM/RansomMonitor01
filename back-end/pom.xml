@@ -30,6 +30,16 @@
       <artifactId>jsoup</artifactId>
       <version>1.19.1</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.1.0</version>
+    </dependency>
   </dependencies>
   <build>
     <finalName>back-end</finalName>

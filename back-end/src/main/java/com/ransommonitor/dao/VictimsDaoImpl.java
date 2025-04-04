@@ -1,6 +1,6 @@
 package com.ransommonitor.dao;
 
-
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,150 +8,161 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ransommonitor.bean.Victim;
-import com.ransommonitor.config.DbConfig;
+import com.ransommonitor.utils.DbConnect;
 
 public class VictimsDaoImpl implements VictimsDao {
 
-    PreparedStatement pstmt;
-    String query;
-
     @Override
     public String addNewVictim(Victim victim) throws SQLException {
-        query = "INSERT INTO Victims(victimName, country, description, victimURL, revenue) " +
+        String query = "INSERT INTO Victims(victimName, country, description, victimURL, revenue) " +
                 "VALUES(?, ?, ?, ?, ?) RETURNING victimId";
 
-        pstmt = DbConfig.getPs(query);
-        if (pstmt == null)
-            return "pstmt failed";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, victim.getVictimName());
+            pstmt.setString(2, victim.getCountry());
+            pstmt.setString(3, victim.getDescription());
+            pstmt.setString(4, victim.getVictimURL());
+            pstmt.setDouble(5, victim.getRevenue());
 
-        pstmt.setString(1, victim.getVictimName());
-        pstmt.setString(2, victim.getCountry());
-        pstmt.setString(3, victim.getDescription());
-        pstmt.setString(4, victim.getVictimURL());
-        pstmt.setDouble(5, victim.getRevenue());
-
-        ResultSet rs = pstmt.executeQuery();
-
-        if (rs.next()) {
-            victim.setVictimId(rs.getInt("victimId"));
-            return "Added Victim";
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    victim.setVictimId(rs.getInt("victimId"));
+                    return "Added Victim";
+                }
+            }
         }
         return "Adding Failed";
     }
 
     @Override
     public boolean updateVictim(Victim victim) throws SQLException {
-        query = "UPDATE Victims SET victimName = ?, country = ?, description = ?, " +
+        String query = "UPDATE Victims SET victimName = ?, country = ?, description = ?, " +
                 "victimURL = ?, revenue = ? WHERE victimId = ?";
 
-        pstmt = DbConfig.getPs(query);
-        pstmt.setString(1, victim.getVictimName());
-        pstmt.setString(2, victim.getCountry());
-        pstmt.setString(3, victim.getDescription());
-        pstmt.setString(4, victim.getVictimURL());
-        pstmt.setDouble(5, victim.getRevenue());
-        pstmt.setInt(6, victim.getVictimId());
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, victim.getVictimName());
+            pstmt.setString(2, victim.getCountry());
+            pstmt.setString(3, victim.getDescription());
+            pstmt.setString(4, victim.getVictimURL());
+            pstmt.setDouble(5, victim.getRevenue());
+            pstmt.setInt(6, victim.getVictimId());
 
-        int rs = pstmt.executeUpdate();
-        return rs > 0;
+            return pstmt.executeUpdate() > 0;
+        }
     }
 
     @Override
     public List<Victim> getAllVictims() throws SQLException {
         List<Victim> victims = new ArrayList<>();
-        query = "SELECT * FROM Victims ORDER BY victimName ASC";
-        pstmt = DbConfig.getPs(query);
-        ResultSet res = pstmt.executeQuery();
+        String query = "SELECT * FROM Victims ORDER BY victimName ASC";
 
-        while (res.next()) {
-            Victim victim = new Victim(
-                    res.getInt("victimId"),
-                    res.getString("victimName"),
-                    res.getString("country"),
-                    res.getString("description"),
-                    res.getString("victimURL"),
-                    res.getDouble("revenue"),
-                    res.getString("createdAt"),
-                    res.getString("updatedAt")
-            );
-            victims.add(victim);
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet res = pstmt.executeQuery()) {
+
+            while (res.next()) {
+                victims.add(new Victim(
+                        res.getInt("victimId"),
+                        res.getString("victimName"),
+                        res.getString("country"),
+                        res.getString("description"),
+                        res.getString("victimURL"),
+                        res.getDouble("revenue"),
+                        res.getString("createdAt"),
+                        res.getString("updatedAt")
+                ));
+            }
         }
         return victims;
     }
 
     @Override
     public Victim getVictimById(int victimId) throws SQLException {
-        query = "SELECT * FROM Victims WHERE victimId = ?";
-        pstmt = DbConfig.getPs(query);
-        pstmt.setInt(1, victimId);
-        ResultSet res = pstmt.executeQuery();
+        String query = "SELECT * FROM Victims WHERE victimId = ?";
 
-        if (res.next()) {
-            return new Victim(
-                    res.getInt("victimId"),
-                    res.getString("victimName"),
-                    res.getString("country"),
-                    res.getString("description"),
-                    res.getString("victimURL"),
-                    res.getDouble("revenue"),
-                    res.getString("createdAt"),
-                    res.getString("updatedAt")
-            );
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, victimId);
+
+            try (ResultSet res = pstmt.executeQuery()) {
+                if (res.next()) {
+                    return new Victim(
+                            res.getInt("victimId"),
+                            res.getString("victimName"),
+                            res.getString("country"),
+                            res.getString("description"),
+                            res.getString("victimURL"),
+                            res.getDouble("revenue"),
+                            res.getString("createdAt"),
+                            res.getString("updatedAt")
+                    );
+                }
+            }
         }
         return null;
     }
 
     @Override
     public Victim getVictimByName(String victimName) throws SQLException {
-        query = "SELECT * FROM Victims WHERE victimName = ?";
-        pstmt = DbConfig.getPs(query);
-        pstmt.setString(1, victimName);
-        ResultSet res = pstmt.executeQuery();
+        String query = "SELECT * FROM Victims WHERE victimName = ?";
 
-        if (res.next()) {
-            return new Victim(
-                    res.getInt("victimId"),
-                    res.getString("victimName"),
-                    res.getString("country"),
-                    res.getString("description"),
-                    res.getString("victimURL"),
-                    res.getDouble("revenue"),
-                    res.getString("createdAt"),
-                    res.getString("updatedAt")
-            );
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, victimName);
+
+            try (ResultSet res = pstmt.executeQuery()) {
+                if (res.next()) {
+                    return new Victim(
+                            res.getInt("victimId"),
+                            res.getString("victimName"),
+                            res.getString("country"),
+                            res.getString("description"),
+                            res.getString("victimURL"),
+                            res.getDouble("revenue"),
+                            res.getString("createdAt"),
+                            res.getString("updatedAt")
+                    );
+                }
+            }
         }
         return null;
     }
 
     @Override
     public boolean deleteVictim(int victimId) throws SQLException {
-        query = "DELETE FROM Victims WHERE victimId = ?";
-        pstmt = DbConfig.getPs(query);
-        pstmt.setInt(1, victimId);
-        int rs = pstmt.executeUpdate();
-        return rs > 0;
+        String query = "DELETE FROM Victims WHERE victimId = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, victimId);
+            return pstmt.executeUpdate() > 0;
+        }
     }
 
-    // Additional useful methods
     public List<Victim> getVictimsByCountry(String country) throws SQLException {
         List<Victim> victims = new ArrayList<>();
-        query = "SELECT * FROM Victims WHERE country = ? ORDER BY victimName ASC";
-        pstmt = DbConfig.getPs(query);
-        pstmt.setString(1, country);
-        ResultSet res = pstmt.executeQuery();
+        String query = "SELECT * FROM Victims WHERE country = ? ORDER BY victimName ASC";
 
-        while (res.next()) {
-            Victim victim = new Victim(
-                    res.getInt("victimId"),
-                    res.getString("victimName"),
-                    res.getString("country"),
-                    res.getString("description"),
-                    res.getString("victimURL"),
-                    res.getDouble("revenue"),
-                    res.getString("createdAt"),
-                    res.getString("updatedAt")
-            );
-            victims.add(victim);
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, country);
+
+            try (ResultSet res = pstmt.executeQuery()) {
+                while (res.next()) {
+                    victims.add(new Victim(
+                            res.getInt("victimId"),
+                            res.getString("victimName"),
+                            res.getString("country"),
+                            res.getString("description"),
+                            res.getString("victimURL"),
+                            res.getDouble("revenue"),
+                            res.getString("createdAt"),
+                            res.getString("updatedAt")
+                    ));
+                }
+            }
         }
         return victims;
     }

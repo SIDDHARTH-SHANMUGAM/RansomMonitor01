@@ -28,6 +28,15 @@ public class Attacker {
     }
 
     public Attacker() {
+        this.attackerId = 0;
+        this.attackerName = "";
+        this.email = "";
+        this.toxId = "";
+        this.sessionId = "";
+        this.description = "";
+        this.firstAttackAt = "";
+        this.isRAAS = false;
+        this.monitorStatus = true;
     }
 
     public int getAttackerId() {

@@ -12,5 +12,4 @@ public interface AttacksDao {
     List<Attack> getAttacksByAttackerName(String attackerName) throws SQLException;
     List<Attack> getAttacksByVictimName(String victimName) throws SQLException;
     boolean updateAttack(Attack attack) throws SQLException;
-    boolean incrementVisitCount(int attackId) throws SQLException;
 }
