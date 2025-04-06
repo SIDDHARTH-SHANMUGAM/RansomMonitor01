@@ -61,7 +61,7 @@ public class ImagesDaoImpl implements ImagesDao {
         logger.info("Fetching images for attackId: " + attackId);
 
         List<Image> images = new ArrayList<>();
-        String query = "SELECT imageId, attackId, createdAt FROM Images WHERE attackId = ? ORDER BY createdAt DESC";
+        String query = "SELECT imageId,image, attackId, createdAt FROM Images WHERE attackId = ? ORDER BY createdAt DESC";
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -71,7 +71,7 @@ public class ImagesDaoImpl implements ImagesDao {
                     images.add(new Image(
                             rs.getInt("imageId"),
                             rs.getInt("attackId"),
-                            null,
+                            rs.getString("image"),
                             rs.getString("createdAt")
                     ));
                 }
