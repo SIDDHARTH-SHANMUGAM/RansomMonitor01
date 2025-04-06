@@ -20,12 +20,20 @@ public class AttackerSiteUrl {
         this.lastScrap = lastScrap;
     }
     public AttackerSiteUrl(int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap) {
-        this.urlId = urlId;
         this.attackerId = attackerId;
         this.URL = URL;
         this.status = status;
         this.monitorStatus = monitorStatus;
         this.lastScrap = lastScrap;
+    }
+
+    public AttackerSiteUrl( int attackerId, String URL) {
+        this.urlId = 0;
+        this.attackerId = attackerId;
+        this.URL = URL;
+        this.status = false;
+        this.monitorStatus = true;
+        this.lastScrap = "";
     }
 
     public int getUrlId() {

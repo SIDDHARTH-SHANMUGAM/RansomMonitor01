@@ -15,4 +15,9 @@ public interface AttackersSiteUrlsDao {
     boolean deleteUrl(int urlId) throws SQLException;
     List<AttackerSiteUrl> getActiveUrls() throws SQLException;
     List<AttackerSiteUrl> getMonitoredUrls() throws SQLException;
+    boolean updateUrlMonitoringStatus(int urlId, boolean status) throws SQLException;
+    boolean getUrlMonitoringStatus(int urlId) throws SQLException;
+
+    boolean updateAttackerMonitoringStatus(int attackerId, boolean status) throws SQLException;
+
 }

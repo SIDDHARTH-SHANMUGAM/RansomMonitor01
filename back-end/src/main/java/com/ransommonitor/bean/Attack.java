@@ -5,79 +5,91 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Attack implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private int attackId;
-    private Attacker attacker;
-    private Victim victim;
-    private String deadlines;
-    private boolean isPublished;
-    private boolean isForSale;
-    private String postedAt;
-    private int noOfVisits;
-    private String dataSizes;
-    private String description;
-    private String lastVisitedAt;
-    private String category;
-    private boolean isNegotiated;
-    private String ransomAmount;
-    private String saleAmount;
-    private String updatedAt;
+        private static final long serialVersionUID = 1L;
+        private int attackId;
+        private Attacker attacker;
+        private Victim victim;
+        private String deadlines;
+        private boolean isPublished;
+        private boolean isForSale;
+        private String postedAt;
+        private int noOfVisits;
+        private String dataSizes;
+        private String description;
+        private String lastVisitedAt;
+        private String category;
+        private boolean isNegotiated;
+        private String ransomAmount;
+        private String saleAmount;
+        private String updatedAt;
 
-    private List<DownloadUrl> downloadUrls;
-    private List<Image> images;
+        private List<DownloadUrl> downloadUrls;
+        private List<Image> images;
 
+        public Attack(int attackId, Attacker attacker, Victim victim, String deadlines,
+                      boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
+                      String description, String lastVisitedAt, String category, boolean isNegotiated,
+                      String ransomAmount, String saleAmount, String updatedAt, List<DownloadUrl> downloadUrls,
+                      List<Image> images) {
+            this.attackId = attackId;
+            this.attacker = attacker;
+            this.victim = victim;
+            this.deadlines = deadlines;
+            this.isPublished = isPublished;
+            this.isForSale = isForSale;
+            this.postedAt = postedAt;
+            this.noOfVisits = noOfVisits;
+            this.dataSizes = dataSizes;
+            this.description = description;
+            this.lastVisitedAt = lastVisitedAt;
+            this.category = category;
+            this.isNegotiated = isNegotiated;
+            this.ransomAmount = ransomAmount;
+            this.saleAmount = saleAmount;
+            this.updatedAt = updatedAt;
+            this.downloadUrls = downloadUrls;
+            this.images = images;
+        }
 
-    public Attack(int attackId, Attacker attacker, Victim victim, String deadlines,
-                  boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
-                  String description, String lastVisitedAt, String category, boolean isNegotiated,
-                  String ransomAmount, String saleAmount, String updatedAt, List<DownloadUrl> downloadUrls,
-                  List<Image> images) {
-        this.attackId = attackId;
-        this.attacker = attacker;
-        this.victim = victim;
-        this.deadlines = deadlines;
-        this.isPublished = isPublished;
-        this.isForSale = isForSale;
-        this.postedAt = postedAt;
-        this.noOfVisits = noOfVisits;
-        this.dataSizes = dataSizes;
-        this.description = description;
-        this.lastVisitedAt = lastVisitedAt;
-        this.category = category;
-        this.isNegotiated = isNegotiated;
-        this.ransomAmount = ransomAmount;
-        this.saleAmount = saleAmount;
-        this.updatedAt = updatedAt;
-        this.downloadUrls = downloadUrls;
-        this.images = images;
-    }
+        public Attack(int attackId, String deadlines, String attackDescription,
+                      boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
+                      String description, String lastVisitedAt, String category, boolean isNegotiated,
+                      String ransomAmount, String saleAmount, String updatedAt) {
+            this.attackId = attackId;
+            this.deadlines = deadlines;
+            this.isPublished = isPublished;
+            this.isForSale = isForSale;
+            this.postedAt = postedAt;
+            this.noOfVisits = noOfVisits;
+            this.dataSizes = dataSizes;
+            this.description = description;
+            this.lastVisitedAt = lastVisitedAt;
+            this.category = category;
+            this.isNegotiated = isNegotiated;
+            this.ransomAmount = ransomAmount;
+            this.saleAmount = saleAmount;
+            this.updatedAt = updatedAt;
+        }
 
-    public Attack(int attackId, String deadlines, String attackDescription,
-                  boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
-                  String description, String lastVisitedAt, String category, boolean isNegotiated,
-                  String ransomAmount, String saleAmount, String updatedAt) {
-        this.attackId = attackId;
-        this.deadlines = deadlines;
-        this.isPublished = isPublished;
-        this.isForSale = isForSale;
-        this.postedAt = postedAt;
-        this.noOfVisits = noOfVisits;
-        this.dataSizes = dataSizes;
-        this.description = description;
-        this.lastVisitedAt = lastVisitedAt;
-        this.category = category;
-        this.isNegotiated = isNegotiated;
-        this.ransomAmount = ransomAmount;
-        this.saleAmount = saleAmount;
-        this.updatedAt = updatedAt;
-    }
-
-    public Attack() {
-        victim = new Victim();
-        attacker = new Attacker();
-        downloadUrls = new ArrayList<>();
-        images = new ArrayList<>();
-    }
+        public Attack() {
+            victim = new Victim();
+            attacker = new Attacker();
+            downloadUrls = new ArrayList<>();
+            images = new ArrayList<>();
+            this.deadlines="";
+            this.isPublished = false;
+            this.isForSale = false;
+            this.postedAt = "";
+            this.noOfVisits = 0;
+            this.dataSizes = "";
+            this.description = "";
+            this.lastVisitedAt = "";
+            this.category = "";
+            this.isNegotiated = false;
+            this.ransomAmount = "";
+            this.saleAmount = "";
+            this.updatedAt = "";
+        }
 
     public int getAttackId() {
         return attackId;
@@ -264,8 +276,7 @@ public class Attack implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = attacker.getAttackerName().hashCode();
-        result = 31 * result + victim.getVictimName().hashCode();
+        int result = victim.getVictimName().hashCode();
         result = 31 * result + description.hashCode();
         result = 31 * result + postedAt.hashCode();
         result = 31 * result + dataSizes.hashCode();

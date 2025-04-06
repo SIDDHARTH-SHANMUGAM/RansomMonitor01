@@ -6,18 +6,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.ransommonitor.bean.Attacker;
 import com.ransommonitor.utils.DbConnect;
 
 public class AttackersDaoImpl implements AttackersDao {
 
+    private static final Logger logger = Logger.getLogger(AttackersDaoImpl.class.getName());
+
     @Override
     public String addNewAttacker(Attacker attacker) throws SQLException {
+        logger.info("Called addNewAttacker()");
+
         String query = "INSERT INTO Attacker(attackerName, email, toxId, sessionId, description, " +
                 "firstAttackAt, isRAAS, monitorStatus) VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING attackerId";
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            logger.info("Preparing statement for adding attacker: " + attacker.getAttackerName());
 
             pstmt.setString(1, attacker.getAttackerName());
             pstmt.setString(2, attacker.getEmail());
@@ -31,14 +38,18 @@ public class AttackersDaoImpl implements AttackersDao {
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 attacker.setAttackerId(rs.getInt("attackerId"));
+                logger.info("Attacker added successfully with ID: " + attacker.getAttackerId());
                 return "Added Attacker";
             }
+            logger.warning("Failed to add attacker.");
             return "Adding Failed";
         }
     }
 
     @Override
     public boolean updateAttacker(Attacker attacker) throws SQLException {
+        logger.info("Called updateAttacker() for attacker ID: " + attacker.getAttackerId());
+
         String query = "UPDATE Attacker SET attackerName = ?, email = ?, toxId = ?, sessionId = ?, " +
                 "description = ?, firstAttackAt = ?, isRAAS = ?, monitorStatus = ? " +
                 "WHERE attackerId = ?";
@@ -55,14 +66,18 @@ public class AttackersDaoImpl implements AttackersDao {
             pstmt.setBoolean(8, attacker.getMonitorStatus());
             pstmt.setInt(9, attacker.getAttackerId());
 
-            return pstmt.executeUpdate() > 0;
+            boolean updated = pstmt.executeUpdate() > 0;
+            logger.info(updated ? "Attacker updated successfully." : "Attacker update failed.");
+            return updated;
         }
     }
 
     @Override
     public List<Attacker> getAllAttackers() throws SQLException {
+        logger.info("Called getAllAttackers()");
         List<Attacker> attackers = new ArrayList<>();
         String query = "SELECT * FROM Attacker ORDER BY attackerName ASC";
+
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query);
              ResultSet res = pstmt.executeQuery()) {
@@ -83,11 +98,15 @@ public class AttackersDaoImpl implements AttackersDao {
                 ));
             }
         }
+
+        logger.info("Retrieved " + attackers.size() + " attackers.");
         return attackers;
     }
 
     @Override
     public Attacker getAttackerById(int attackerId) throws SQLException {
+        logger.info("Called getAttackerById() for ID: " + attackerId);
+
         String query = "SELECT * FROM Attacker WHERE attackerId = ?";
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -96,6 +115,7 @@ public class AttackersDaoImpl implements AttackersDao {
             ResultSet res = pstmt.executeQuery();
 
             if (res.next()) {
+                logger.info("Attacker found with ID: " + attackerId);
                 return new Attacker(
                         res.getInt("attackerId"),
                         res.getString("attackerName"),
@@ -111,11 +131,15 @@ public class AttackersDaoImpl implements AttackersDao {
                 );
             }
         }
+
+        logger.warning("No attacker found with ID: " + attackerId);
         return null;
     }
 
     @Override
     public Attacker getAttackerByName(String attackerName) throws SQLException {
+        logger.info("Called getAttackerByName() for name: " + attackerName);
+
         String query = "SELECT * FROM Attacker WHERE attackerName = ?";
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -124,6 +148,7 @@ public class AttackersDaoImpl implements AttackersDao {
             ResultSet res = pstmt.executeQuery();
 
             if (res.next()) {
+                logger.info("Attacker found with name: " + attackerName);
                 return new Attacker(
                         res.getInt("attackerId"),
                         res.getString("attackerName"),
@@ -139,17 +164,24 @@ public class AttackersDaoImpl implements AttackersDao {
                 );
             }
         }
+
+        logger.warning("No attacker found with name: " + attackerName);
         return null;
     }
 
+
     @Override
     public boolean deleteAttacker(int attackerId) throws SQLException {
+        logger.info("Called deleteAttacker() for ID: " + attackerId);
+
         String query = "DELETE FROM Attacker WHERE attackerId = ?";
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
             pstmt.setInt(1, attackerId);
-            return pstmt.executeUpdate() > 0;
+            boolean deleted = pstmt.executeUpdate() > 0;
+            logger.info(deleted ? "Attacker deleted successfully." : "Attacker deletion failed.");
+            return deleted;
         }
     }
 }

@@ -8,69 +8,75 @@ import com.ransommonitor.dao.AttackersDao;
 import com.ransommonitor.dao.AttackersDaoImpl;
 import com.ransommonitor.dao.AttackersSiteUrlsDao;
 import com.ransommonitor.dao.AttackersSiteUrlsDaoImpl;
-import com.ransommonitor.service.AttackerSiteUrlSevice;
 import com.ransommonitor.service.AttackersService;
 import com.ransommonitor.service.AttackersServiceImpl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebServlet("/addAttacker")
 public class AddAttackerServlet extends HttpServlet {
-    private AttackersDao attackersDao = new AttackersDaoImpl();
-    private AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
-    private Gson gson = new Gson();
+
+    private static final Logger logger = Logger.getLogger(AddAttackerServlet.class.getName());
+
+    private final AttackersService attackersService = new AttackersServiceImpl();
+    private final AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
+    private final Gson gson = new Gson();
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Read JSON request body
+        logger.info("Received request to add a new attacker.");
+
         BufferedReader reader = request.getReader();
         StringBuilder jsonBody = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             jsonBody.append(line);
-            System.out.println(line);
         }
 
+        logger.fine("Request JSON body: " + jsonBody);
+
         try {
-            // Convert JSON to Java object using Gson
             AttackerRequest attackerRequest = gson.fromJson(jsonBody.toString(), AttackerRequest.class);
 
-            // Create Attacker object
             Attacker attacker = new Attacker();
             attacker.setAttackerName(attackerRequest.getAttackerName());
 
-            System.out.println(attacker);
+            logger.info("Parsed attacker: " + attacker.getAttackerName());
 
-            // Save to database
-            String s=  attackersDao.addNewAttacker(attacker);
-            System.out.println(s);
+            String result = attackersService.addNewAttacker(attacker, attackerRequest.getUrls());
+            logger.info("DAO result: " + result);
 
-            for(String url : attackerRequest.getUrls())
-            {
-                attackersSiteUrlsDao.addNewUrl(new AttackerSiteUrl(attacker.getAttackerId(), url, true, true, new Date().toString()));
-            }
 
-            if (s.equals("Added Attacker")) {
+            if ("Added Attacker".equals(result)) {
                 response.getWriter().write("Attacker added successfully");
                 response.setStatus(HttpServletResponse.SC_OK);
+                logger.info("Attacker added successfully.");
             } else {
                 response.getWriter().write("Failed to add attacker.");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("Failed to add attacker.");
             }
+
         } catch (JsonSyntaxException e) {
+            logger.log(Level.SEVERE, "Invalid JSON format: " + e.getMessage(), e);
             response.getWriter().write("Invalid JSON format: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error processing request: " + e.getMessage(), e);
             response.getWriter().write("Error processing request: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

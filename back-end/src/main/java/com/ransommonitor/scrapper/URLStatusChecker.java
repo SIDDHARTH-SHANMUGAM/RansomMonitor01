@@ -13,14 +13,16 @@ public class URLStatusChecker {
                     new InetSocketAddress("localhost", port));
             Jsoup.connect(onionUrl)
                     .proxy(TOR_PROXY)
-                    .timeout(30000) // 30 seconds timeout
+                    .timeout(30000)
                     .ignoreContentType(true)
                     .ignoreHttpErrors(true)
                     .method(org.jsoup.Connection.Method.HEAD)
                     .execute();
+            System.out.println("Onion Status Check Success"+ onionUrl);
             return true;
         } catch (IOException e) {
             return false;
         }
     }
+
 }

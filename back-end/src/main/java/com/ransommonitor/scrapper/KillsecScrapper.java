@@ -39,7 +39,7 @@ public class KillsecScrapper implements Scrapper {
                 Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", port));
                 List<Attack> attacksList = new ArrayList<>();
                 extract(proxy, attacksList);
-                break;
+                return attacksList;
             } catch (Exception e) {
                 System.out.println("Failed with port " + port + ": " + e.getMessage());
             }

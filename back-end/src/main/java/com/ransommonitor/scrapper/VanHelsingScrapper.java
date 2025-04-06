@@ -2,7 +2,6 @@ package com.ransommonitor.scrapper;
 
 import com.ransommonitor.bean.Attack;
 import com.ransommonitor.bean.DownloadUrl;
-import com.ransommonitor.bean.Image;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,18 +11,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 public class VanHelsingScrapper implements Scrapper {
 
     private String mainUrl;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public List<Attack> scrapData(String url) {
@@ -37,7 +31,7 @@ public class VanHelsingScrapper implements Scrapper {
                 Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", port));
                 List<Attack> attacksList = new ArrayList<>();
                 extract(proxy, attacksList);
-                break;
+                return attacksList;
             } catch (Exception e) {
                 System.out.println("Failed with port " + port + ": " + e.getMessage());
             }

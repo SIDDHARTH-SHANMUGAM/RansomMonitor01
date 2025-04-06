@@ -1,11 +1,9 @@
 package com.ransommonitor.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.ransommonitor.bean.Attack;
 import com.ransommonitor.bean.Attacker;
@@ -13,40 +11,52 @@ import com.ransommonitor.bean.Victim;
 import com.ransommonitor.utils.DbConnect;
 
 public class AttacksDaoImpl implements AttacksDao {
+
+    private static final Logger logger = Logger.getLogger(AttacksDaoImpl.class.getName());
+
     DownloadUrlsDaoImpl downloadUrlsDao = new DownloadUrlsDaoImpl();
     ImagesDaoImpl imagesDao = new ImagesDaoImpl();
 
     @Override
     public String addNewAttack(Attack attack) throws SQLException {
+        logger.info("Adding new attack for attacker ID: " + attack.getAttacker().getAttackerId()
+                + ", victim ID: " + attack.getVictim().getVictimId());
+
         String query = "INSERT INTO Attacks(attackerId, victimId, deadlines, isPublished, " +
                 "isForSale, postedAt, dataSizes, description, category, ransomAmount, saleAmount) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING attackId";
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setInt(1, attack.getAttacker().getAttackerId());
             pstmt.setInt(2, attack.getVictim().getVictimId());
             pstmt.setString(3, attack.getDeadlines());
             pstmt.setBoolean(4, attack.isPublished());
             pstmt.setBoolean(5, attack.isForSale());
-            pstmt.setString(6, attack.getDataSizes());
-            pstmt.setString(7, attack.getDescription());
-            pstmt.setString(8, attack.getCategory());
-            pstmt.setString(9, attack.getRansomAmount());
-            pstmt.setString(10, attack.getSaleAmount());
+            pstmt.setString(6, attack.getPostedAt());
+            pstmt.setString(7, attack.getDataSizes());
+            pstmt.setString(8, attack.getDescription());
+            pstmt.setString(9, attack.getCategory());
+            pstmt.setString(10, attack.getRansomAmount());
+            pstmt.setString(11, attack.getSaleAmount());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    attack.setAttackId(rs.getInt("attackId"));
+                    int id = rs.getInt("attackId");
+                    attack.setAttackId(id);
+                    logger.info("New attack added with ID: " + id);
                     return "Added Attack";
                 }
             }
         }
+        logger.warning("Failed to add attack");
         return "Adding Failed";
     }
 
     @Override
     public List<Attack> getAllAttacks() throws SQLException {
+        logger.info("Fetching all attacks");
         String query = "SELECT a.*, at.*, v.* FROM Attacks a " +
                 "JOIN Attacker at ON a.attackerId = at.attackerId " +
                 "JOIN Victims v ON a.victimId = v.victimId " +
@@ -55,12 +65,16 @@ public class AttacksDaoImpl implements AttacksDao {
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query);
              ResultSet res = pstmt.executeQuery()) {
-            return getFromResultSet(res);
+
+            List<Attack> attacks = getFromResultSet(res);
+            logger.info("Total attacks fetched: " + attacks.size());
+            return attacks;
         }
     }
 
     @Override
     public List<Attack> getAttacksByAttackerName(String attackerName) throws SQLException {
+        logger.info("Fetching attacks by attacker name: " + attackerName);
         String query = "SELECT a.*, at.*, v.* FROM Attacks a " +
                 "JOIN Attacker at ON a.attackerId = at.attackerId " +
                 "JOIN Victims v ON a.victimId = v.victimId " +
@@ -69,15 +83,19 @@ public class AttacksDaoImpl implements AttacksDao {
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setString(1, attackerName);
             try (ResultSet res = pstmt.executeQuery()) {
-                return getFromResultSet(res);
+                List<Attack> attacks = getFromResultSet(res);
+                logger.info("Attacks found for attacker '" + attackerName + "': " + attacks.size());
+                return attacks;
             }
         }
     }
 
     @Override
     public List<Attack> getAttacksByVictimName(String victimName) throws SQLException {
+        logger.info("Fetching attacks by victim name: " + victimName);
         String query = "SELECT a.*, at.*, v.* FROM Attacks a " +
                 "JOIN Attacker at ON a.attackerId = at.attackerId " +
                 "JOIN Victims v ON a.victimId = v.victimId " +
@@ -86,15 +104,19 @@ public class AttacksDaoImpl implements AttacksDao {
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setString(1, victimName);
             try (ResultSet res = pstmt.executeQuery()) {
-                return getFromResultSet(res);
+                List<Attack> attacks = getFromResultSet(res);
+                logger.info("Attacks found for victim '" + victimName + "': " + attacks.size());
+                return attacks;
             }
         }
     }
 
     @Override
     public boolean updateAttack(Attack attack) throws SQLException {
+        logger.info("Updating attack with ID: " + attack.getAttackId());
         String query = "UPDATE Attacks SET attackerId = ?, victimId = ?, deadlines = ?, " +
                 "isPublished = ?, isForSale = ?, dataSizes = ?, description = ?, " +
                 "category = ?, isNegotiated = ?, ransomAmount = ?, saleAmount = ? " +
@@ -102,6 +124,7 @@ public class AttacksDaoImpl implements AttacksDao {
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setInt(1, attack.getAttacker().getAttackerId());
             pstmt.setInt(2, attack.getVictim().getVictimId());
             pstmt.setString(3, attack.getDeadlines());
@@ -115,16 +138,16 @@ public class AttacksDaoImpl implements AttacksDao {
             pstmt.setString(11, attack.getSaleAmount());
             pstmt.setInt(12, attack.getAttackId());
 
-            return pstmt.executeUpdate() > 0;
+            boolean success = pstmt.executeUpdate() > 0;
+            logger.info("Update success: " + success);
+            return success;
         }
     }
-
-
 
     private List<Attack> getFromResultSet(ResultSet res) throws SQLException {
         List<Attack> attacks = new ArrayList<>();
         while (res.next()) {
-            attacks.add(new Attack(
+            Attack attack = new Attack(
                     res.getInt("attackId"),
                     new Attacker(
                             res.getInt("attackerId"),
@@ -164,7 +187,8 @@ public class AttacksDaoImpl implements AttacksDao {
                     res.getString("updatedAt"),
                     downloadUrlsDao.getDownloadUrlsByAttack(res.getInt("attackId")),
                     imagesDao.getImagesByAttack(res.getInt("attackId"))
-            ));
+            );
+            attacks.add(attack);
         }
         return attacks;
     }

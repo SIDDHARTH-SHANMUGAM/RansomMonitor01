@@ -32,7 +32,7 @@ public class BasheScrapper implements Scrapper {
                 Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", port));
                 List<Attack> attacksList = new ArrayList<>();
                 extract(proxy, attacksList);
-                break;
+                return attacksList;
             } catch (Exception e) {
                 System.out.println("Failed with port " + port + ": " + e.getMessage());
             }
@@ -150,18 +150,7 @@ public class BasheScrapper implements Scrapper {
                 imgUrl =  mainUrl+ imgUrl;
             }
 
-            try {
-                byte[] imageBytes = Jsoup.connect(imgUrl)
-                        .ignoreContentType(true)
-                        .proxy(proxy)
-                        .timeout(10000)
-                        .execute()
-                        .bodyAsBytes();
-
-                attack.getImages().add(new Image(Base64.getEncoder().encodeToString(imageBytes)));
-            } catch (Exception e) {
-                System.out.println("Failed to download image: " + imgUrl);
-            }
+            attack.getImages().add(new Image(imgUrl));
         }
     }
 

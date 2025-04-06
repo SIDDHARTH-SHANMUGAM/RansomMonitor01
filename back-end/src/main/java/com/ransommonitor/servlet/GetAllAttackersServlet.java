@@ -1,7 +1,6 @@
 package com.ransommonitor.servlet;
 
 import com.google.gson.Gson;
-import com.ransommonitor.bean.Attack;
 import com.ransommonitor.bean.Attacker;
 import com.ransommonitor.bean.AttackerSiteUrl;
 import com.ransommonitor.dao.AttackersDao;
@@ -16,42 +15,63 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebServlet("/getAllAttackers")
 public class GetAllAttackersServlet extends HttpServlet {
 
-private AttackersDao attackersDao = new AttackersDaoImpl();
-private AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
+    private static final Logger logger = Logger.getLogger(GetAllAttackersServlet.class.getName());
+    private final AttackersDao attackersDao = new AttackersDaoImpl();
+    private final AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        logger.info("Received GET request on /getAllAttackers");
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         try {
             List<Attacker> attackers = attackersDao.getAllAttackers();
+            logger.info("Fetched " + attackers.size() + " attackers from database.");
+
             List<Map<String, Object>> result = new ArrayList<>();
 
             for (Attacker attacker : attackers) {
+                logger.fine("Processing attacker: " + attacker.getAttackerName());
+
                 Map<String, Object> attackerMap = new HashMap<>();
                 attackerMap.put("attackerId", attacker.getAttackerId());
                 attackerMap.put("attackerName", attacker.getAttackerName());
                 attackerMap.put("monitorStatus", attacker.getMonitorStatus());
-                attackerMap.put("urls", attackersSiteUrlsDao.getUrlsByAttackerName(attacker.getAttackerName()));
+
+                List<AttackerSiteUrl> urls = attackersSiteUrlsDao.getUrlsByAttackerName(attacker.getAttackerName());
+                logger.fine("Fetched " + urls.size() + " URLs for attacker: " + attacker.getAttackerName());
+
+//                for (AttackerSiteUrl attackerSiteUrl : urls) {
+//                    boolean isLive = URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9050)
+//                            || URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9150);
+//                    attackerSiteUrl.setStatus(isLive);
+//                }
+
+                attackerMap.put("urls", urls);
                 result.add(attackerMap);
             }
 
             String json = new Gson().toJson(result);
             response.getWriter().write(json);
+            logger.info("Successfully responded with attacker data.");
         } catch (SQLException e) {
+            logger.log(Level.SEVERE, "SQLException while fetching attackers: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("{\"error\": \"Failed to fetch attackers\"}");
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Unexpected exception: ", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"error\": \"Unexpected error occurred\"}");
         }
     }
 }

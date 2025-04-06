@@ -1,12 +1,14 @@
 package com.ransommonitor.servlet;
 
-
 import com.ransommonitor.bean.*;
 import com.ransommonitor.dao.*;
 import com.ransommonitor.scrapper.Scrapper;
 import com.ransommonitor.scrapper.ScrapperFactory;
+import com.ransommonitor.scrapper.URLStatusChecker;
 import com.ransommonitor.service.AttackersService;
 import com.ransommonitor.service.AttackersServiceImpl;
+import com.ransommonitor.service.AttacksService;
+import com.ransommonitor.service.AttacksServiceImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,90 +17,83 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebServlet("/doScrap")
 public class DoScrapServlet extends HttpServlet {
-    private AttackersService attackerService;
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
-    }
+    private static final Logger logger = Logger.getLogger(DoScrapServlet.class.getName());
+    private AttackersService attackerService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        AttackersService attackersService = new AttackersServiceImpl(new AttackersDaoImpl());
+        logger.info("Scraping process initiated via /doScrap");
+
+        AttackersService attackersService = new AttackersServiceImpl();
         AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
-        AttacksDao attacksDao = new AttacksDaoImpl();
-        VictimsDao victimsDao = new VictimsDaoImpl();
-        DownloadUrlsDao downloadUrlsDao = new DownloadUrlsDaoImpl();
-        ImagesDao imagesDao = new ImagesDaoImpl();
+        AttacksService attacksService = new AttacksServiceImpl();
+
+
         try {
             List<Attacker> attackers = attackersService.getAttackers();
+            logger.info("Fetched attackers count: " + attackers.size());
+
             for (Attacker attacker : attackers) {
-                if(attacker.getMonitorStatus())
-                {
-                    List<AttackerSiteUrl> attackerSiteUrls = attackersSiteUrlsDao.getUrlsByAttackerName(attacker.getAttackerName());
-                    for(AttackerSiteUrl attackerSiteUrl : attackerSiteUrls)
-                    {
+                logger.fine("Checking attacker: " + attacker.getAttackerName());
+
+                if (attacker.getMonitorStatus()) {
+                    logger.fine("Attacker is enabled for monitoring: " + attacker.getAttackerName());
+
+                    List<AttackerSiteUrl> attackerSiteUrls =
+                            attackersSiteUrlsDao.getUrlsByAttackerName(attacker.getAttackerName());
+
+                    logger.fine("Fetched site URLs for attacker " + attacker.getAttackerName() +
+                            ", count: " + attackerSiteUrls.size());
+
+                    for (AttackerSiteUrl attackerSiteUrl : attackerSiteUrls) {
+
+                        logger.fine("Checking URL: " + attackerSiteUrl.getURL());
                         if(attackerSiteUrl.isMonitorStatus())
                         {
-                            Scrapper scrapper = ScrapperFactory.getScrapper(attacker.getAttackerName());
-                            List<Attack> attacks = scrapper.scrapData(attackerSiteUrl.getURL());
-                            List<Attack> prev = attacksDao.getAttacksByAttackerName(attacker.getAttackerName());
-                            for(Attack attack : attacks)
-                            {
-                                boolean found = false;
-                                for(Attack attack1: prev)
-                                {
-                                    if(attack.equals(attack1))
-                                    {
-                                        if(attack.equals2(attack1)){
-                                            found = true;
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            attacksDao.updateAttack(attack);
-                                        }
+                            updateUrl(attackerSiteUrl);
+                            System.out.println("updating Url status");
+                            if ( attackerSiteUrl.isStatus()){
 
-                                    }
-                                }
-                                if(found)
-                                    continue;
-                                else
-                                {
-                                    victimsDao.addNewVictim(attack.getVictim());
-                                    attacksDao.addNewAttack(attack);
-                                    for(DownloadUrl x: attack.getDownloadUrls())
-                                    {
-                                        x.setAttackId(attack.getAttackId());
-                                        downloadUrlsDao.addDownloadUrl(x);
-                                    }
-                                    for(Image x: attack.getImages())
-                                    {
-                                        x.setAttackId(attack.getAttackId());
-                                        imagesDao.addImage(x);
-                                    }
-                                }
+                                logger.info("URL is live and monitoring enabled: " + attackerSiteUrl.getURL());
+
+                                Scrapper scrapper = ScrapperFactory.getScrapper(attacker.getAttackerName());
+                                List<Attack> attacks = scrapper.scrapData(attackerSiteUrl.getURL());
+
+                                logger.info("Scraped attacks count: " + (attacks != null ? attacks.size() : 0));
+                                attacksService.addNewAttacks(attacks, attacker);
+                            } else {
+                                logger.fine("URL not live or monitoring disabled: " + attackerSiteUrl.getURL());
                             }
-
-
                         }
                     }
+                } else {
+                    logger.fine("Skipping attacker (monitorStatus is false): " + attacker.getAttackerName());
                 }
-
             }
 
         } catch (SQLException e) {
-            System.out.println("SQLException: " + e.getMessage());
+            logger.log(Level.SEVERE, "SQLException during scraping process: ", e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Unexpected exception during scraping process: ", e);
         }
     }
+
+
+    public void updateUrl(AttackerSiteUrl attackerSiteUrl) throws SQLException {
+        AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
+        boolean b=URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9050)||
+                URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9150);
+        attackerSiteUrl.setStatus(b);
+        attackersSiteUrlsDao.updateUrl(attackerSiteUrl);
+    }
 }
-
-
-
-
