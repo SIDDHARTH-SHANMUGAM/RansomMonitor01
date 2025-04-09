@@ -52,12 +52,13 @@ public class PlayScraper implements Scraper {
         while (hasMorePages) {
             String pageUrl = currentPage == 1 ?
                     baseUrl :
-                    baseUrl + "/index.php?page=" + currentPage;
+                    baseUrl + "index.php?page=" + currentPage;
 
             System.out.println("Processing page: " + pageUrl);
 
             Document page;
             try {
+                System.out.println("Trying to get page: " + pageUrl);
                 page = Jsoup.connect(pageUrl)
                         .timeout(60000)
                         .proxy(proxy)
@@ -75,18 +76,17 @@ public class PlayScraper implements Scraper {
             processPageContent(page, proxy, attacksList);
 
             // Check pagination - look for next page number
-            Elements paginationLinks = page.select("th.Page");
+            Elements paginationLinks = page.select("th span.page");
             hasMorePages = false;
-
+            System.out.println(paginationLinks.toString());
             for (Element pageLink : paginationLinks) {
                 try {
                     int pageNum = Integer.parseInt(pageLink.text());
                     if (pageNum > currentPage) {
-                        hasMorePages = true;
+//                        hasMorePages = true;
                         break;
                     }
                 } catch (NumberFormatException e) {
-                    // Skip non-numeric elements (like "...")
                 }
             }
 
@@ -101,7 +101,7 @@ public class PlayScraper implements Scraper {
     }
 
     private void processPageContent(Document page, Proxy proxy, List<Attack> attacksList) {
-        Elements newsItems = page.select("tr:has(th.News)");
+        Elements newsItems = page.select("th.News");
         System.out.println("Found " + newsItems.size() + " leaks on page");
 
         for (Element newsItem : newsItems) {
@@ -143,69 +143,38 @@ public class PlayScraper implements Scraper {
     private void extractBasicInfo(Element newsItem, Attack attack) throws ParseException {
         try {
             // Victim name extraction
-            String victimText = newsItem.select("th.News").text();
+            Element locationIcon = newsItem.select("i.location").first();
+            String country="";
+            if (locationIcon != null) {
+                country = locationIcon.nextSibling().toString().replace("&nbsp;", "").trim();
+                attack.getVictim().setCountry(country.isEmpty() ? "Unknown" : country);
+            }
+
+
+            String victimText = newsItem.selectFirst("th.News").text().split(country)[0];
             String[] lines = victimText.split("\n");
             attack.getVictim().setVictimName(lines[0].trim());
 
-            // Country extraction
-            Element locationIcon = newsItem.select("i.location").first();
-            if (locationIcon != null) {
-                String country = locationIcon.nextSibling().toString().replace("&nbsp;", "").trim();
-                attack.getVictim().setCountry(country.isEmpty() ? "Unknown" : country);
-            }
 
             // Website extraction
             Element linkIcon = newsItem.select("i.link").first();
             if (linkIcon != null) {
                 String website = linkIcon.nextSibling().toString().trim();
-                attack.getVictim().setVictimURL(website.isEmpty() ? "" : website);
+                attack.getVictim().setVictimURL(website.isEmpty() ? "" : website.replace("&nbsp;", ""));
             }
 
-            // View count extraction
-            Elements viewElements = newsItem.select("div:contains(views:)");
-            if (!viewElements.isEmpty()) {
-                String viewText = viewElements.first().text();
-                String views = viewText.replace("👁️", "")
-                        .replace("views:", "")
-                        .split("\\s+")[0]
-                        .replaceAll("[^0-9]", "");
-                try {
-                    attack.setNoOfVisits(views.isEmpty() ? 0 : Integer.parseInt(views));
-                } catch (NumberFormatException e) {
-                    System.err.println("Failed to parse views: " + viewText);
-                    attack.setNoOfVisits(0);
-                }
-            } else {
-                attack.setNoOfVisits(0);
+            if(victimText.contains("views:")) {
+                attack.setNoOfVisits(Integer.parseInt(victimText.split(" views:")[1].split(" ")[0]));
             }
 
-            // Data size extraction
-            for (Element el : newsItem.select("div")) {
-                if (el.text().contains("amount of data:")) {
-                    Matcher sizeMatcher = DATA_SIZE_PATTERN.matcher(el.text());
-                    if (sizeMatcher.find()) {
-                        attack.setDataSizes(sizeMatcher.group(1) + " " + sizeMatcher.group(3));
-                    }
-                    break;
-                }
+            if(victimText.contains("added:")) {
+                attack.setPostedAt(victimText.split(" added: ")[1].split(" ")[0]);
             }
 
-            // Date extraction
-            for (Element el : newsItem.select("div")) {
-                if (el.text().contains("added:")) {
-                    String addedDateText = el.text().replace("added:", "").trim();
-                    attack.setPostedAt(addedDateText);
-                }
-                if (el.text().contains("publication date:")) {
-                    String pubDateText = el.text().replace("publication date:", "").trim();
-                    attack.setDeadlines(pubDateText);
-
-                    Element statusElement = el.parent().select("div:has(h)").first();
-                    if (statusElement != null) {
-                        attack.setPublished(statusElement.text().trim().equals("PUBLISHED"));
-                    }
-                }
+            if(victimText.contains("publication date:")) {
+                attack.setPostedAt(victimText.split(" publication date: ")[1].split(" ")[0]);
             }
+
 
             // Default values
             attack.setCategory("Double Extortion");
@@ -223,7 +192,7 @@ public class PlayScraper implements Scraper {
     }
 
     private void extractDetailedInfo(Attack attack, String topicId, Proxy proxy) {
-        String detailUrl = baseUrl + "/topic.php?id=" + topicId;
+        String detailUrl = baseUrl + "topic.php?id=" + topicId;
         Document detailPage;
         try {
             detailPage = Jsoup.connect(detailUrl)
@@ -234,12 +203,23 @@ public class PlayScraper implements Scraper {
             System.err.println("Failed to fetch details for topic " + topicId + ": " + e.getMessage());
             return;
         }
+        Matcher sizeMatcher = Pattern.compile("(\\d+\\.?\\d*\\s*(TB|GB|MB|KB|tb|gb|kb|mb))").matcher(detailPage.text());
+        if (sizeMatcher.find()) {
+            attack.setDataSizes(sizeMatcher.group(1));
+        }
 
         // Extract information section
         Element infoElement = detailPage.select("div:contains(information:)").first();
         if (infoElement != null) {
             String infoText = infoElement.text().replace("information:", "").trim();
+            System.out.println(infoText);
             attack.setDescription(infoText);
+
+            List<String> urls = extractOnionLinks(infoText);
+
+            for (String url : urls) {
+                attack.getDownloadUrls().add(new DownloadUrl(url));
+            }
 
             // Try to extract ransom amount from description
             Matcher moneyMatcher = MONEY_PATTERN.matcher(infoText);
@@ -253,7 +233,12 @@ public class PlayScraper implements Scraper {
         if (commentElement != null) {
             String commentText = commentElement.text().replace("comment:", "").trim();
             attack.setDescription(commentText);
+            System.out.println(commentText);
+            List<String> urls = extractOnionLinks(commentText);
 
+            for (String url : urls) {
+                attack.getDownloadUrls().add(new DownloadUrl(url));
+            }
             // Check for negotiation/sale status
             String lowerComment = commentText.toLowerCase();
             attack.setNegotiated(lowerComment.contains("negotiat") || lowerComment.contains("discuss"));
@@ -281,5 +266,16 @@ public class PlayScraper implements Scraper {
 
         // Set update time
         attack.setUpdatedAt(new Date().toString());
+    }
+    public static List<String> extractOnionLinks(String text) {
+        List<String> onionLinks = new ArrayList<>();
+        System.out.println("here");
+        // Regex to find .onion links
+        Pattern pattern = Pattern.compile("http://[a-z2-7]{16,56}\\.onion/[a-zA-Z0-9/]*");
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            onionLinks.add(matcher.group());
+        }
+        return onionLinks;
     }
 }

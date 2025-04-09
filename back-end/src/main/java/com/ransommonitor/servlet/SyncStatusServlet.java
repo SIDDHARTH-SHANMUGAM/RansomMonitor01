@@ -2,7 +2,7 @@ package com.ransommonitor.servlet;
 
 import com.ransommonitor.bean.AttackerSiteUrl;
 import com.ransommonitor.dao.AttackersSiteUrlsDaoImpl;
-import com.ransommonitor.scrapper.URLStatusChecker;
+import com.ransommonitor.utils.URLStatusChecker;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

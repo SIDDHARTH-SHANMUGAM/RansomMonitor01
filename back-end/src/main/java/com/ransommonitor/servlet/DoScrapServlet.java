@@ -3,8 +3,8 @@ package com.ransommonitor.servlet;
 import com.ransommonitor.bean.*;
 import com.ransommonitor.dao.*;
 import com.ransommonitor.scrapper.Scraper;
-import com.ransommonitor.scrapper.ScraperFactory;
-import com.ransommonitor.scrapper.URLStatusChecker;
+import com.ransommonitor.utils.ScraperFactory;
+import com.ransommonitor.utils.URLStatusChecker;
 import com.ransommonitor.service.*;
 
 import javax.servlet.ServletException;

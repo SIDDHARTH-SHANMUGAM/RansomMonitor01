@@ -19,11 +19,8 @@ public class Main {
 //        VanHelsingScraper scrapper3 = new VanHelsingScraper();
 //        scrapper3.scrapData("http://vanhelwmbf2bwzw7gmseg36qqm4ekc5uuhqbsew4eihzcahyq7sukzad.onion/blog/index.php");
 
-//        PlayScraper scrapper4 = new PlayScraper();
-//        scrapper4.scrapeData("http://mbrlkbtq5jonaqkurjwmxftytyn2ethqvbxfu4rgjbkkknndqwae6byd.onion/");
-
-//        MedusaScraper medusaScraper = new MedusaScraper();
-//        medusaScraper.scrapeData("http://xfv4jzckytb4g3ckwemcny3ihv4i5p4lqzdpi624cxisu35my5fwi5qd.onion/");
+        PlayScraper scrapper4 = new PlayScraper();
+        scrapper4.scrapeData("http://mbrlkbtq5jonaqkurjwmxftytyn2ethqvbxfu4rgjbkkknndqwae6byd.onion/");
 
 //        FogScraper fogScrapper = new FogScraper();
 //        fogScrapper.scrapeData("http://xbkv2qey6u3gd3qxcojynrt4h5sgrhkar6whuo74wo63hijnn677jnyd.onion/posts/");
@@ -39,6 +36,21 @@ public class Main {
 
 //        NightSpireScraper scraper = new NightSpireScraper();
 //        scraper.scrapeData("http://nspireyzmvapgiwgtuoznlafqvlyz7ey6himtgn5bdvdcowfyto3yryd.onion/datas.php");
+
+//        ArkanaScraper scraper = new ArkanaScraper();
+//        scraper.scrapeData("http://arkanabb66ee4nsdji6la2bu6bwqe3dbtsyf3rxrv6vhiehod7utagad.onion");
+
+//        SafePayScraper scraper = new SafePayScraper();
+//        scraper.scrapeData("http://nz4z6ruzcekriti5cjjiiylzvrmysyqwibxztk6voem4trtx7gstpjid.onion/");
+
+//        HellCatScraper scraper = new HellCatScraper();
+//        scraper.scrapeData("http://hellcakbszllztlyqbjzwcbdhfrodx55wq77kmftp4bhnhsnn5r3odad.onion/");
+
+//        ChaosScraper scraper = new ChaosScraper();
+//        scraper.scrapeData("http://hptqq2o2qjva7lcaaq67w36jihzivkaitkexorauw7b2yul2z6zozpqd.onion/list");
+
+//        Secp0Scraper scraper = new Secp0Scraper();
+//        scraper.scrapeData("http://secponewsxgrlnirowclps2kllzaotaf5w2bsvktdnz4qhjr2jnwvvyd.onion/");
 
 
     }

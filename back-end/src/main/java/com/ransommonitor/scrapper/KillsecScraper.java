@@ -74,18 +74,18 @@ public class KillsecScraper implements Scraper {
                 attack.setDataSizes(sizeMatcher.group(1));
             }
 
-//            // Deadline from countdown script
-//            Element countdownScript = postLink.select("script").first();
-//            if (countdownScript != null) {
-//                String scriptText = countdownScript.html();
-//                String timestampStr = scriptText.replaceAll(".*?(\\d{10}).*", "$1");
-//                try {
-//                    long timestamp = Long.parseLong(timestampStr);
-//                    attack.setDeadlines(convertTimestampToDate(timestamp));
-//                } catch (NumberFormatException e) {
-//                    attack.setDeadlines("Unknown deadline");
-//                }
-//            }
+            // Deadline from countdown script
+            Element countdownScript = postLink.select("script").first();
+            if (countdownScript != null) {
+                String scriptText = countdownScript.html();
+                String timestampStr = scriptText.replaceAll(".*?(\\d{10}).*", "$1");
+                try {
+                    long timestamp = Long.parseLong(timestampStr);
+                    attack.setDeadlines(convertTimestampToDate(timestamp));
+                } catch (NumberFormatException e) {
+                    attack.setDeadlines("Unknown deadline");
+                }
+            }
 
 
             // Category from tags

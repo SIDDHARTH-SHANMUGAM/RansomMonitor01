@@ -1,4 +1,6 @@
-package com.ransommonitor.scrapper;
+package com.ransommonitor.utils;
+
+import com.ransommonitor.scrapper.*;
 
 public class ScraperFactory {
     public static Scraper getScrapper(String type) {
