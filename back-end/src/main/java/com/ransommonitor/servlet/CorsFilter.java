@@ -3,7 +3,6 @@ package com.ransommonitor.servlet;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

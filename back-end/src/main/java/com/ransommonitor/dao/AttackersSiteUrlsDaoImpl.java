@@ -1,13 +1,10 @@
 package com.ransommonitor.dao;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import com.ransommonitor.bean.AttackerSiteUrl;
 import com.ransommonitor.utils.DbConnect;
@@ -17,12 +14,7 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
     private static final Logger logger = Logger.getLogger(AttackersSiteUrlsDaoImpl.class.getName());
 
     @Override
-    public String addNewUrl(AttackerSiteUrl url) throws SQLException {
-        logger.info("Adding new URL for attacker ID: " + url.getAttackerId());
-        if(isValidUrl(url.getURL()))
-        {
-            return "Url is Not Valid";
-        }
+    public boolean addNewUrl(AttackerSiteUrl url) throws SQLException {
         String query = "INSERT INTO AttackerSiteURL(attackerId, url, status, monitorStatus, isScraped) " +
                 "VALUES(?, ?, ?, ?, ?) RETURNING urlId";
 
@@ -39,40 +31,11 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
                 if (rs.next()) {
                     url.setUrlId(rs.getInt("urlId"));
                     logger.info("URL added with ID: " + url.getUrlId());
-                    return "Added URL";
+                    return true;
                 }
             }
         }
-        logger.warning("Failed to add URL");
-        return "Adding Failed";
-    }
-
-    private static final Pattern ONION_V3_PATTERN =
-            Pattern.compile("^[a-z2-7]{56}\\.onion$");
-
-    // Regex pattern for legacy v2 onion addresses (16 chars)
-    private static final Pattern ONION_V2_PATTERN =
-            Pattern.compile("^[a-z2-7]{16}\\.onion$");
-
-    public static boolean isValidUrl(String url) {
-        try {
-            URL parsedUrl = new URL(url);
-            String host = parsedUrl.getHost().toLowerCase();
-
-            // Special validation for .onion addresses
-            if (host.endsWith(".onion")) {
-                String onionName = host.substring(0, host.length() - 6);
-                return ONION_V3_PATTERN.matcher(onionName).matches() ||
-                        ONION_V2_PATTERN.matcher(onionName).matches();
-            }
-
-            // Standard URL validation
-            parsedUrl.toURI();
-            return true;
-
-        } catch (MalformedURLException | URISyntaxException e) {
-            return false;
-        }
+        return false;
     }
 
     @Override
@@ -279,23 +242,6 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
     }
 
     @Override
-    public boolean updateAttackerMonitoringStatus(int attackerId, boolean status) throws SQLException {
-        logger.info("Updating attacker (ID: " + attackerId + ") monitoring status to " + status);
-        String query = "UPDATE Attacker SET monitorStatus = ? WHERE attackerId = ?";
-
-        try (Connection conn = DbConnect.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-            pstmt.setBoolean(1, status);
-            pstmt.setInt(2, attackerId);
-
-            boolean success = pstmt.executeUpdate() > 0;
-            logger.info("Attacker monitoring status update success: " + success);
-            return success;
-        }
-    }
-
-    @Override
     public boolean isUrlExist(String url) throws SQLException {
         logger.info("Checking if URL " + url + " exists");
         String query = "SELECT * FROM AttackerSiteURL WHERE url = ?";
@@ -306,7 +252,70 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
             ResultSet rs= pstmt.executeQuery();
             return rs.next();
         }
+    }
 
+    @Override
+    public boolean isUrlExist(int urlId) throws SQLException {
+        String query = "SELECT * FROM AttackerSiteURL WHERE urlId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, urlId);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next();
+        }
+    }
 
+    @Override
+    public boolean deleteUrlByAttackerId(int attackerId) throws SQLException {
+        String query = "DELETE FROM AttackerSiteURL WHERE attackerId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, attackerId);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateUrlStatus(int urlId, boolean status) throws SQLException {
+        String query = "UPDATE AttackerSiteURL SET status = ? WHERE urlId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setBoolean(1, status);
+            pstmt.setInt(2, urlId);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateUrlMonitorStatus(int urlId, boolean status) throws SQLException {
+        String query = "UPDATE AttackerSiteURL SET monitorStatus = ? WHERE urlId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setBoolean(1, status);
+            pstmt.setInt(2, urlId);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateUpdatedat(int urlId) throws SQLException {
+        String query = "UPDATE AttackerSiteURL SET updatedat = ? WHERE urlId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, LocalDateTime.now().toString());
+            pstmt.setInt(2, urlId);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateIsScrapped(int urlId, boolean status) throws SQLException {
+        String query = "UPDATE AttackerSiteURL SET isScrapped = ? WHERE urlId = ?";
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setBoolean(1, status);
+            pstmt.setInt(2, urlId);
+            return pstmt.executeUpdate() > 0;
+        }
     }
 }

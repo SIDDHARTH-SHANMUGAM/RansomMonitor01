@@ -18,7 +18,7 @@ public class AttacksDaoImpl implements AttacksDao {
     ImagesDaoImpl imagesDao = new ImagesDaoImpl();
 
     @Override
-    public String addNewAttack(Attack attack) throws SQLException {
+    public boolean addNewAttack(Attack attack) throws SQLException {
         logger.info("Adding new attack for attacker ID: " + attack.getAttacker().getAttackerId()
                 + ", victim ID: " + attack.getVictim().getVictimId());
 
@@ -46,12 +46,12 @@ public class AttacksDaoImpl implements AttacksDao {
                     int id = rs.getInt("attackId");
                     attack.setAttackId(id);
                     logger.info("New attack added with ID: " + id);
-                    return "Added Attack";
+                    return true;
                 }
             }
         }
         logger.warning("Failed to add attack");
-        return "Adding Failed";
+        return false;
     }
 
     @Override

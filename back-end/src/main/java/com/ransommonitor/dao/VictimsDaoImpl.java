@@ -13,7 +13,7 @@ import com.ransommonitor.utils.DbConnect;
 public class VictimsDaoImpl implements VictimsDao {
 
     @Override
-    public String addNewVictim(Victim victim) throws SQLException {
+    public boolean addNewVictim(Victim victim) throws SQLException {
         String query = "INSERT INTO Victims(victimName, country, description, victimURL, revenue) " +
                 "VALUES(?, ?, ?, ?, ?) RETURNING victimId";
 
@@ -28,11 +28,11 @@ public class VictimsDaoImpl implements VictimsDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     victim.setVictimId(rs.getInt("victimId"));
-                    return "Added Victim";
+                    return true;
                 }
             }
         }
-        return "Adding Failed";
+        return false;
     }
 
     @Override

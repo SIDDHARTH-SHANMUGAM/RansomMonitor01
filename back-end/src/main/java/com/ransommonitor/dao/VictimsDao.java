@@ -6,10 +6,10 @@ import java.util.List;
 import com.ransommonitor.bean.Victim;
 
 public interface VictimsDao {
-    String addNewVictim(Victim victim) throws SQLException;
+    boolean addNewVictim(Victim victim) throws SQLException;
     boolean updateVictim(Victim victim) throws SQLException;
-    List<Victim> getAllVictims() throws SQLException;
+    boolean deleteVictim(int victimId) throws SQLException;
     Victim getVictimById(int victimId) throws SQLException;
     Victim getVictimByName(String victimName) throws SQLException;
-    boolean deleteVictim(int victimId) throws SQLException;
+    List<Victim> getAllVictims() throws SQLException;
 }

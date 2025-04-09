@@ -16,7 +16,7 @@ public class DownloadUrlsDaoImpl implements DownloadUrlsDao {
     private static final Logger logger = Logger.getLogger(DownloadUrlsDaoImpl.class.getName());
 
     @Override
-    public String addDownloadUrl(DownloadUrl downloadUrl) throws SQLException {
+    public boolean addDownloadUrl(DownloadUrl downloadUrl) throws SQLException {
         logger.info("Adding new download URL for attackId: " + downloadUrl.getAttackId());
 
         String query = "INSERT INTO DownloadUrls(attackId, downloadUrl) VALUES(?, ?) RETURNING downloadUrlId";
@@ -31,12 +31,12 @@ public class DownloadUrlsDaoImpl implements DownloadUrlsDao {
                 if (rs.next()) {
                     downloadUrl.setDownloadUrlId(rs.getInt("downloadUrlId"));
                     logger.info("Download URL added successfully with ID: " + downloadUrl.getDownloadUrlId());
-                    return "Download URL added successfully";
+                    return true;
                 }
             }
         }
         logger.warning("Failed to add download URL");
-        return "Failed to add download URL";
+        return false;
     }
 
     @Override

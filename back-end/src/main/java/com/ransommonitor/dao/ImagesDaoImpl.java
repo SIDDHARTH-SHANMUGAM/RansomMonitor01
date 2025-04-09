@@ -16,7 +16,7 @@ public class ImagesDaoImpl implements ImagesDao {
     private static final Logger logger = Logger.getLogger(ImagesDaoImpl.class.getName());
 
     @Override
-    public String addImage(Image image) throws SQLException {
+    public boolean addImage(Image image) throws SQLException {
         logger.info("Adding new image for attackId: " + image.getAttackId());
 
         String query = "INSERT INTO Images(attackId, image) VALUES(?, ?) RETURNING imageId, createdAt";
@@ -30,13 +30,13 @@ public class ImagesDaoImpl implements ImagesDao {
                 if (rs.next()) {
                     image.setImageId(rs.getInt("imageId"));
                     logger.info("Image added successfully with ID: " + image.getImageId());
-                    return "Image added successfully";
+                    return true;
                 }
             }
         }
 
         logger.warning("Failed to add image");
-        return "Failed to add image";
+        return false;
     }
 
     @Override
