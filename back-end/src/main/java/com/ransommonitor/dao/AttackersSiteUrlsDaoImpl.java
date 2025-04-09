@@ -23,16 +23,17 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
         {
             return "Url is Not Valid";
         }
-        String query = "INSERT INTO AttackerSiteURL(attackerId, url, status, monitorStatus) " +
-                "VALUES(?, ?, ?, ?) RETURNING urlId";
+        String query = "INSERT INTO AttackerSiteURL(attackerId, url, status, monitorStatus, isScraped) " +
+                "VALUES(?, ?, ?, ?, ?) RETURNING urlId";
 
         try (Connection conn = DbConnect.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(query)) {
 
             pstmt.setInt(1, url.getAttackerId());
             pstmt.setString(2, url.getURL());
-            pstmt.setBoolean(3, true );
+            pstmt.setBoolean(3, url.getActiveStatus() );
             pstmt.setBoolean(4, url.isMonitorStatus());
+            pstmt.setBoolean(5, url.isScraped());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -77,7 +78,8 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
     @Override
     public boolean updateUrl(AttackerSiteUrl url) throws SQLException {
         logger.info("Updating URL with ID: " + url.getUrlId());
-        String query = "UPDATE AttackerSiteURL SET attackerId = ?, url = ?, status = ?, " +
+        System.out.println("here "+url);
+        String query = "UPDATE AttackerSiteURL SET attackerId = ?, url = ?, status = ?, isScraped = ?," +
                 "monitorStatus = ? WHERE urlId = ?";
 
         try (Connection conn = DbConnect.getConnection();
@@ -85,9 +87,10 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
 
             pstmt.setInt(1, url.getAttackerId());
             pstmt.setString(2, url.getURL());
-            pstmt.setBoolean(3, url.isStatus());
-            pstmt.setBoolean(4, url.isMonitorStatus());
-            pstmt.setInt(5, url.getUrlId());
+            pstmt.setBoolean(3, url.getActiveStatus());
+            pstmt.setBoolean(4, url.isScraped());
+            pstmt.setBoolean(5, url.isMonitorStatus());
+            pstmt.setInt(6, url.getUrlId());
 
             boolean success = pstmt.executeUpdate() > 0;
             logger.info("Update status: " + success);
@@ -232,7 +235,8 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
                 res.getString("url"),
                 res.getBoolean("status"),
                 res.getBoolean("monitorStatus"),
-                res.getString("updatedat")
+                res.getString("updatedat"),
+                res.getBoolean("isScraped")
         );
     }
 
@@ -289,5 +293,20 @@ public class AttackersSiteUrlsDaoImpl implements AttackersSiteUrlsDao {
             logger.info("Attacker monitoring status update success: " + success);
             return success;
         }
+    }
+
+    @Override
+    public boolean isUrlExist(String url) throws SQLException {
+        logger.info("Checking if URL " + url + " exists");
+        String query = "SELECT * FROM AttackerSiteURL WHERE url = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, url);
+            ResultSet rs= pstmt.executeQuery();
+            return rs.next();
+        }
+
+
     }
 }

@@ -20,4 +20,5 @@ public interface AttackersSiteUrlsDao {
 
     boolean updateAttackerMonitoringStatus(int attackerId, boolean status) throws SQLException;
 
+    boolean isUrlExist(String url) throws SQLException;
 }

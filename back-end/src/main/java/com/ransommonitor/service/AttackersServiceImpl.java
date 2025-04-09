@@ -38,7 +38,7 @@ public class AttackersServiceImpl implements AttackersService {
         String res = attackerDao.addNewAttacker(attacker);
         if(res.equals("Added Attacker")) {
             for (String url : urlList) {
-                AttackerSiteUrl siteUrl = new AttackerSiteUrl(attacker.getAttackerId(), url, true, true, new Date().toString());
+                AttackerSiteUrl siteUrl = new AttackerSiteUrl(attacker.getAttackerId(), url, true, true, new Date().toString(), true);
 
                 String s =attackersSiteUrlsDao.addNewUrl(siteUrl);
                 if(s.equals("Url is Not Valid")) {
@@ -59,6 +59,7 @@ public class AttackersServiceImpl implements AttackersService {
     public List<Attacker> getAttackers() throws SQLException {
         logger.info("Fetching all attackers...");
         List<Attacker> attackers = attackerDao.getAllAttackers();
+
         logger.info("Retrieved " + attackers.size() + " attackers.");
         return attackers;
     }

@@ -17,18 +17,17 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KillsecScrapper implements Scrapper {
+public class KillsecScraper implements Scraper {
 
     private String mainUrl ;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public List<Attack> scrapData(String url) {
+    public List<Attack> scrapeData(String url) {
 
         mainUrl = url;
         int[] torPorts = {9050, 9150};

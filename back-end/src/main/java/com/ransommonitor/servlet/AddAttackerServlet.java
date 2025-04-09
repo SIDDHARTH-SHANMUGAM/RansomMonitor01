@@ -3,11 +3,6 @@ package com.ransommonitor.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.ransommonitor.bean.Attacker;
-import com.ransommonitor.bean.AttackerSiteUrl;
-import com.ransommonitor.dao.AttackersDao;
-import com.ransommonitor.dao.AttackersDaoImpl;
-import com.ransommonitor.dao.AttackersSiteUrlsDao;
-import com.ransommonitor.dao.AttackersSiteUrlsDaoImpl;
 import com.ransommonitor.service.AttackersService;
 import com.ransommonitor.service.AttackersServiceImpl;
 
@@ -18,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,14 +23,16 @@ public class AddAttackerServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger(AddAttackerServlet.class.getName());
 
     private final AttackersService attackersService = new AttackersServiceImpl();
-    private final AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
     private final Gson gson = new Gson();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        logger.info("Received request to add a new attacker.");
+        response.setContentType("application/json;charset=UTF-8");
+
+
+        logger.info("Received request to add a new attacker in AddAttackerServlet.");
 
         BufferedReader reader = request.getReader();
         StringBuilder jsonBody = new StringBuilder();
@@ -57,7 +52,7 @@ public class AddAttackerServlet extends HttpServlet {
             logger.info("Parsed attacker: " + attacker.getAttackerName());
 
             String result = attackersService.addNewAttacker(attacker, attackerRequest.getUrls());
-            logger.info("DAO result: " + result);
+            logger.info("servlet result: " + result);
 
 
             if ("Added Attacker".equals(result)) {

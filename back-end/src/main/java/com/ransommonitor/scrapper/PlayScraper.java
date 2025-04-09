@@ -20,14 +20,14 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PlayScrapper implements Scrapper {
+public class PlayScraper implements Scraper {
     private String baseUrl;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
     private static final Pattern DATA_SIZE_PATTERN = Pattern.compile("amount of data:\\s*(\\d+(\\.\\d+)?)\\s*(TB|GB|MB|KB)", Pattern.CASE_INSENSITIVE);
     private static final Pattern MONEY_PATTERN = Pattern.compile("\\$(\\d{1,3}(?:,\\d{3})*(?:\\.\\d{2})?)");
 
     @Override
-    public List<Attack> scrapData(String url) {
+    public List<Attack> scrapeData(String url) {
         this.baseUrl = url.replaceAll("/index\\.php.*", "");
         int[] torPorts = { 9150, 9050};
 

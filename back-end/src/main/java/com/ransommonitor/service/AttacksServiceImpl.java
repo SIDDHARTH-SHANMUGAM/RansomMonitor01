@@ -92,4 +92,10 @@ public class AttacksServiceImpl implements AttacksService {
 
         logger.info("Exiting addNewAttacks method");
     }
+
+    @Override
+    public List<Attack> getAllAtacks() throws SQLException {
+        logger.info("Entering getAllAtacks method");
+        return attacksDao.getAllAttacks();
+    }
 }

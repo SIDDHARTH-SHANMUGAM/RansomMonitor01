@@ -168,7 +168,7 @@ public class AttacksDaoImpl implements AttacksDao {
                             res.getString("country"),
                             res.getString("description"),
                             res.getString("victimURL"),
-                            res.getDouble("revenue"),
+                            res.getString("revenue"),
                             res.getString("createdAt"),
                             res.getString("updatedAt")
                     ),
@@ -184,6 +184,7 @@ public class AttacksDaoImpl implements AttacksDao {
                     res.getBoolean("isNegotiated"),
                     res.getString("ransomAmount"),
                     res.getString("saleAmount"),
+                    res.getString("createdAt"),
                     res.getString("updatedAt"),
                     downloadUrlsDao.getDownloadUrlsByAttack(res.getInt("attackId")),
                     imagesDao.getImagesByAttack(res.getInt("attackId"))

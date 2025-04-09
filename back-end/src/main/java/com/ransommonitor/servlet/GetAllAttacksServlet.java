@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.ransommonitor.bean.Attack;
 import com.ransommonitor.dao.AttacksDao;
 import com.ransommonitor.dao.AttacksDaoImpl;
+import com.ransommonitor.service.AttacksService;
+import com.ransommonitor.service.AttacksServiceImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,7 +22,7 @@ import java.util.logging.Logger;
 public class GetAllAttacksServlet extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(GetAllAttacksServlet.class.getName());
-    private final AttacksDao attacksDao = new AttacksDaoImpl();
+    private final AttacksService  attacksService = new AttacksServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,7 +34,7 @@ public class GetAllAttacksServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            List<Attack> attacks = attacksDao.getAllAttacks();
+            List<Attack> attacks = attacksService.getAllAtacks();
             logger.info("Fetched " + attacks.size() + " attacks from database.");
 
             String json = new Gson().toJson(attacks);

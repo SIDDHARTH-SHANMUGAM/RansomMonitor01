@@ -2,13 +2,10 @@ package com.ransommonitor.servlet;
 
 import com.ransommonitor.bean.*;
 import com.ransommonitor.dao.*;
-import com.ransommonitor.scrapper.Scrapper;
-import com.ransommonitor.scrapper.ScrapperFactory;
+import com.ransommonitor.scrapper.Scraper;
+import com.ransommonitor.scrapper.ScraperFactory;
 import com.ransommonitor.scrapper.URLStatusChecker;
-import com.ransommonitor.service.AttackersService;
-import com.ransommonitor.service.AttackersServiceImpl;
-import com.ransommonitor.service.AttacksService;
-import com.ransommonitor.service.AttacksServiceImpl;
+import com.ransommonitor.service.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,15 +58,25 @@ public class DoScrapServlet extends HttpServlet {
                         {
                             updateUrl(attackerSiteUrl);
                             System.out.println("updating Url status");
-                            if ( attackerSiteUrl.isStatus()){
+                            if ( attackerSiteUrl.getActiveStatus()){
 
                                 logger.info("URL is live and monitoring enabled: " + attackerSiteUrl.getURL());
 
-                                Scrapper scrapper = ScrapperFactory.getScrapper(attacker.getAttackerName());
-                                List<Attack> attacks = scrapper.scrapData(attackerSiteUrl.getURL());
+                                Scraper scrapper = ScraperFactory.getScrapper(attacker.getAttackerName());
+                                List<Attack> attacks = scrapper.scrapeData(attackerSiteUrl.getURL());
+                                if(attacks==null||attacks.isEmpty())
+                                {
+                                    attackerSiteUrl.setScraped(false);
+                                }
+                                else
+                                {
+                                    attackerSiteUrl.setScraped(true);
+                                    logger.info("Scraped attacks count: " + attacks.size());
+                                    attacksService.addNewAttacks(attacks, attacker);
 
-                                logger.info("Scraped attacks count: " + (attacks != null ? attacks.size() : 0));
-                                attacksService.addNewAttacks(attacks, attacker);
+                                }
+                                attackersSiteUrlsDao.updateUrl(attackerSiteUrl);
+
                             } else {
                                 logger.fine("URL not live or monitoring disabled: " + attackerSiteUrl.getURL());
                             }
@@ -94,6 +100,10 @@ public class DoScrapServlet extends HttpServlet {
         boolean b=URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9050)||
                 URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9150);
         attackerSiteUrl.setStatus(b);
+        if(!b)
+        {
+            attackerSiteUrl.setScraped(false);
+        }
         attackersSiteUrlsDao.updateUrl(attackerSiteUrl);
     }
 }

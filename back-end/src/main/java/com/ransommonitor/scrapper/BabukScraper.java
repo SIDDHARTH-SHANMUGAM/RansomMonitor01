@@ -13,16 +13,15 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BabukScrapper implements Scrapper {
+public class BabukScraper implements Scraper {
 
     private String mainUrl ;
     @Override
-    public List<Attack> scrapData(String url) {
+    public List<Attack> scrapeData(String url) {
 
         mainUrl = url;
         int[] torPorts = {9050, 9150};
@@ -76,6 +75,7 @@ public class BabukScrapper implements Scrapper {
                         .get();
 
                 extractDetailedInfo(attack, detailPage, proxy);
+                System.out.println(attack);
                 attacksList.add(attack);
             } catch (Exception e) {
                 System.err.println("Error processing " + attack.getVictim().getVictimName()+ ": " + e.getMessage());

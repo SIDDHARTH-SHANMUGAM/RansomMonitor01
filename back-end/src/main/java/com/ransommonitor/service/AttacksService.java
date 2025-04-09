@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface AttacksService {
     void addNewAttacks(List<Attack> attacks, Attacker attacker) throws SQLException;
+
+    List<Attack> getAllAtacks() throws SQLException;
 }

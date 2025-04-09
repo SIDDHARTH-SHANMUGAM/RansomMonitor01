@@ -6,25 +6,28 @@ public class AttackerSiteUrl {
     private String URL;
     private boolean status;
     private boolean monitorStatus;
+    private boolean isScraped;
     private String lastScrap;
 
 
     public AttackerSiteUrl() {}
 
-    public AttackerSiteUrl(int urlId, int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap) {
+    public AttackerSiteUrl(int urlId, int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap, boolean isScrapped) {
         this.urlId = urlId;
         this.attackerId = attackerId;
         this.URL = URL;
         this.status = status;
         this.monitorStatus = monitorStatus;
         this.lastScrap = lastScrap;
+        this.isScraped = isScrapped;
     }
-    public AttackerSiteUrl(int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap) {
+    public AttackerSiteUrl(int attackerId, String URL, boolean status, boolean monitorStatus, String lastScrap, boolean isScrapped) {
         this.attackerId = attackerId;
         this.URL = URL;
         this.status = status;
         this.monitorStatus = monitorStatus;
         this.lastScrap = lastScrap;
+        this.isScraped = isScrapped;
     }
 
     public AttackerSiteUrl( int attackerId, String URL) {
@@ -34,6 +37,7 @@ public class AttackerSiteUrl {
         this.status = false;
         this.monitorStatus = true;
         this.lastScrap = "";
+        this.isScraped = false;
     }
 
     public int getUrlId() {
@@ -60,7 +64,7 @@ public class AttackerSiteUrl {
         this.URL = URL;
     }
 
-    public boolean isStatus() {
+    public boolean getActiveStatus() {
         return status;
     }
 
@@ -82,5 +86,30 @@ public class AttackerSiteUrl {
 
     public void setLastScrap(String lastScrap) {
         this.lastScrap = lastScrap;
+    }
+
+    public boolean isScraped() {
+        return isScraped;
+    }
+
+    public void setScraped(boolean scrapped) {
+        isScraped = scrapped;
+    }
+
+    public String getLastScrap() {
+        return lastScrap;
+    }
+
+    @Override
+    public String toString() {
+        return "AttackerSiteUrl{" +
+                "urlId=" + urlId +
+                ", attackerId=" + attackerId +
+                ", URL='" + URL + '\'' +
+                ", status=" + status +
+                ", monitorStatus=" + monitorStatus +
+                ", isScrapped=" + isScraped +
+                ", lastScrap='" + lastScrap + '\'' +
+                '}';
     }
 }

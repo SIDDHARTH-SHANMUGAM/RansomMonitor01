@@ -51,17 +51,13 @@ public class GetAllAttackersServlet extends HttpServlet {
                 List<AttackerSiteUrl> urls = attackersSiteUrlsDao.getUrlsByAttackerName(attacker.getAttackerName());
                 logger.fine("Fetched " + urls.size() + " URLs for attacker: " + attacker.getAttackerName());
 
-//                for (AttackerSiteUrl attackerSiteUrl : urls) {
-//                    boolean isLive = URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9050)
-//                            || URLStatusChecker.checkOnionStatus(attackerSiteUrl.getURL(), 9150);
-//                    attackerSiteUrl.setStatus(isLive);
-//                }
 
                 attackerMap.put("urls", urls);
                 result.add(attackerMap);
             }
 
             String json = new Gson().toJson(result);
+            System.out.println(json);
             response.getWriter().write(json);
             logger.info("Successfully responded with attacker data.");
         } catch (SQLException e) {

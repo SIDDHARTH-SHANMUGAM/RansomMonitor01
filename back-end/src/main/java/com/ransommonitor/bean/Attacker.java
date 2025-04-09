@@ -127,6 +127,12 @@ public class Attacker {
         this.updatedAt = updatedAt;
     }
 
+
+    public boolean isMonitorStatus() {
+        return monitorStatus;
+    }
+
+
     @Override
     public String toString() {
         return "" +

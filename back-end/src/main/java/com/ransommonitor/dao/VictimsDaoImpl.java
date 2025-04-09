@@ -23,7 +23,7 @@ public class VictimsDaoImpl implements VictimsDao {
             pstmt.setString(2, victim.getCountry());
             pstmt.setString(3, victim.getDescription());
             pstmt.setString(4, victim.getVictimURL());
-            pstmt.setDouble(5, victim.getRevenue());
+            pstmt.setString(5, victim.getRevenue());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -46,7 +46,7 @@ public class VictimsDaoImpl implements VictimsDao {
             pstmt.setString(2, victim.getCountry());
             pstmt.setString(3, victim.getDescription());
             pstmt.setString(4, victim.getVictimURL());
-            pstmt.setDouble(5, victim.getRevenue());
+            pstmt.setString(5, victim.getRevenue());
             pstmt.setInt(6, victim.getVictimId());
 
             return pstmt.executeUpdate() > 0;
@@ -69,7 +69,7 @@ public class VictimsDaoImpl implements VictimsDao {
                         res.getString("country"),
                         res.getString("description"),
                         res.getString("victimURL"),
-                        res.getDouble("revenue"),
+                        res.getString("revenue"),
                         res.getString("createdAt"),
                         res.getString("updatedAt")
                 ));
@@ -94,7 +94,7 @@ public class VictimsDaoImpl implements VictimsDao {
                             res.getString("country"),
                             res.getString("description"),
                             res.getString("victimURL"),
-                            res.getDouble("revenue"),
+                            res.getString("revenue"),
                             res.getString("createdAt"),
                             res.getString("updatedAt")
                     );
@@ -120,7 +120,7 @@ public class VictimsDaoImpl implements VictimsDao {
                             res.getString("country"),
                             res.getString("description"),
                             res.getString("victimURL"),
-                            res.getDouble("revenue"),
+                            res.getString("revenue"),
                             res.getString("createdAt"),
                             res.getString("updatedAt")
                     );
@@ -157,7 +157,7 @@ public class VictimsDaoImpl implements VictimsDao {
                             res.getString("country"),
                             res.getString("description"),
                             res.getString("victimURL"),
-                            res.getDouble("revenue"),
+                            res.getString("revenue"),
                             res.getString("createdAt"),
                             res.getString("updatedAt")
                     ));

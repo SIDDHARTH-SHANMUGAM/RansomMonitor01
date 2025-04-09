@@ -21,6 +21,7 @@ public class Attack implements Serializable {
         private boolean isNegotiated;
         private String ransomAmount;
         private String saleAmount;
+        private String createdAt;
         private String updatedAt;
 
         private List<DownloadUrl> downloadUrls;
@@ -29,7 +30,8 @@ public class Attack implements Serializable {
         public Attack(int attackId, Attacker attacker, Victim victim, String deadlines,
                       boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
                       String description, String lastVisitedAt, String category, boolean isNegotiated,
-                      String ransomAmount, String saleAmount, String updatedAt, List<DownloadUrl> downloadUrls,
+                      String ransomAmount, String saleAmount, String createdAt, String updatedAt,
+                      List<DownloadUrl> downloadUrls,
                       List<Image> images) {
             this.attackId = attackId;
             this.attacker = attacker;
@@ -46,6 +48,7 @@ public class Attack implements Serializable {
             this.isNegotiated = isNegotiated;
             this.ransomAmount = ransomAmount;
             this.saleAmount = saleAmount;
+            this.createdAt = createdAt;
             this.updatedAt = updatedAt;
             this.downloadUrls = downloadUrls;
             this.images = images;
@@ -54,7 +57,7 @@ public class Attack implements Serializable {
         public Attack(int attackId, String deadlines, String attackDescription,
                       boolean isPublished, boolean isForSale, String postedAt, int noOfVisits, String dataSizes,
                       String description, String lastVisitedAt, String category, boolean isNegotiated,
-                      String ransomAmount, String saleAmount, String updatedAt) {
+                      String ransomAmount, String saleAmount, String createdAt,String updatedAt) {
             this.attackId = attackId;
             this.deadlines = deadlines;
             this.isPublished = isPublished;
@@ -68,6 +71,7 @@ public class Attack implements Serializable {
             this.isNegotiated = isNegotiated;
             this.ransomAmount = ransomAmount;
             this.saleAmount = saleAmount;
+            this.createdAt = createdAt;
             this.updatedAt = updatedAt;
         }
 
@@ -88,6 +92,7 @@ public class Attack implements Serializable {
             this.isNegotiated = false;
             this.ransomAmount = "";
             this.saleAmount = "";
+            this.createdAt = "";
             this.updatedAt = "";
         }
 
@@ -236,6 +241,14 @@ public class Attack implements Serializable {
         this.images = images;
     }
 
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public String toString() {
         return "#############################################################" +
@@ -253,6 +266,7 @@ public class Attack implements Serializable {
                 "\n isNegotiated=" + isNegotiated +
                 "\n ransomAmount=" + ransomAmount +
                 "\n saleAmount=" + saleAmount +
+                "\n createdAt=" + createdAt +
                 "\n updatedAt=" + updatedAt +
                 "\n downloadUrls=" + downloadUrls +
                 "\n images=" + images +
@@ -266,7 +280,6 @@ public class Attack implements Serializable {
 
         Attack attack = (Attack) obj;
 
-        // Compare selected fields for equality
         return this.attacker.getAttackerName().equals( attack.attacker.getAttackerName()) &&
                 this.victim.getVictimName().equals( attack.victim.getVictimName() )&&
                 this.description.equals(attack.description) &&
@@ -293,5 +306,4 @@ public class Attack implements Serializable {
                 &&this.deadlines.equals(that.deadlines)
                 ;
     }
-
 }

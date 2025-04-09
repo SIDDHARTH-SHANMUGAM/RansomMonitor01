@@ -2,8 +2,8 @@ package com.ransommonitor.servlet;
 
 import com.google.gson.Gson;
 import com.ransommonitor.bean.AttackerSiteUrl;
-import com.ransommonitor.dao.AttackersSiteUrlsDao;
-import com.ransommonitor.dao.AttackersSiteUrlsDaoImpl;
+import com.ransommonitor.service.AttackerSiteUrlServiceImpl;
+import com.ransommonitor.service.AttackerSiteUrlSevice;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class AddUrlServlet extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(AddUrlServlet.class.getName());
-    private final AttackersSiteUrlsDao attackersSiteUrlsDao = new AttackersSiteUrlsDaoImpl();
+    private AttackerSiteUrlSevice attackerSiteUrlService = new AttackerSiteUrlServiceImpl();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -44,7 +44,7 @@ public class AddUrlServlet extends HttpServlet {
 
             logger.info("Parsed attackerId: " + attackerId + ", URL: " + url);
 
-            attackersSiteUrlsDao.addNewUrl(new AttackerSiteUrl(attackerId, url, true, true, ""));
+            attackerSiteUrlService.addNewUrl(new AttackerSiteUrl(attackerId, url, true, true, "", true));
             logger.info("URL added to attacker successfully.");
 
             response.setStatus(HttpServletResponse.SC_OK);

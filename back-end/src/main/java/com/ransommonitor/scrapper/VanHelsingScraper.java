@@ -11,16 +11,15 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.sql.SQLException;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VanHelsingScrapper implements Scrapper {
+public class VanHelsingScraper implements Scraper {
 
     private String mainUrl;
 
     @Override
-    public List<Attack> scrapData(String url) {
+    public List<Attack> scrapeData(String url) {
 
         mainUrl = url;
         int[] torPorts = {9050, 9150};

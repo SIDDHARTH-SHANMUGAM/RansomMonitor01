@@ -6,11 +6,11 @@ public class Victim {
     private String country;
     private String description;
     private String victimURL;
-    private double revenue;
+    private String revenue;
     private String createdAt;
     private String updatedAt;
 
-    public Victim(int victimId, String victimName, String country, String description, String victimURL, double revenue, String createdAt, String updatedAt) {
+    public Victim(int victimId, String victimName, String country, String description, String victimURL, String revenue, String createdAt, String updatedAt) {
         this.victimId = victimId;
         this.victimName = victimName;
         this.country = country;
@@ -64,11 +64,11 @@ public class Victim {
         this.victimURL = victimURL;
     }
 
-    public double getRevenue() {
+    public String getRevenue() {
         return revenue;
     }
 
-    public void setRevenue(double revenue) {
+    public void setRevenue(String revenue) {
         this.revenue = revenue;
     }
 

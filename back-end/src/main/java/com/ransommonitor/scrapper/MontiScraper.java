@@ -13,15 +13,15 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BasheScrapper implements Scrapper {
+public class MontiScraper implements Scraper {
+
     private String mainUrl ;
     @Override
-    public List<Attack> scrapData(String url) {
+    public List<Attack> scrapeData(String url) {
 
         mainUrl = url;
         int[] torPorts = {9050, 9150};
@@ -34,7 +34,7 @@ public class BasheScrapper implements Scrapper {
                 extract(proxy, attacksList);
                 return attacksList;
             } catch (Exception e) {
-                System.out.println("Failed with port " + port + ": " + e.getMessage());
+                System.err.println("Failed with port " + port + ": " + e);
             }
         }
         return null;
@@ -52,44 +52,30 @@ public class BasheScrapper implements Scrapper {
 
 
 //      Accessing and dividing the cards using select
-        Elements leakCards = mainPage.select(".segment");
+        Elements leakCards = mainPage.select(".leak-card");
         System.out.println("Found " + leakCards.size() + " leaks to process");
 
 //      Iterating each card
-        for (Element segment : leakCards) {
+        for (Element card : leakCards) {
 
             Attack attack = new Attack();
+            if(card.select("h5").text().toString().equals("\uD83D\uDE80 Launch Your Own Ransomware(RAAS) Business with Our Exclusive Ransomware Panel Source Code! \uD83D\uDCB0"))
+                continue;
 
-            Element companyElement = segment.select(".segment__text__off").first();
-            attack.getVictim().setVictimName(companyElement != null ? companyElement.text() : "Unknown");
-
-            // Extract country
-            Element countryElement = segment.select(".segment__country__deadline").first();
-            attack.getVictim().setCountry(countryElement != null ? countryElement.text() : "Unknown");
-
-            // Extract description
-            Element descElement = segment.select(".segment__text__dsc").first();
-            attack.setDescription(descElement != null ? descElement.text() : "No description");
-
-
-            // Extract status (Published/Not Published)
-            Element statusElement = segment.select(".segment__block.published").first();
-            attack.setPublished(statusElement != null && statusElement.text().equals("Published"));
-
-            // Extract detail page URL from onclick handler
-            String moreDetails="";
-            String onclick = segment.attr("onclick");
-            if (onclick != null && !onclick.isEmpty()) {
-                moreDetails = onclick.replace("window.location.href='", "").replace("'", "");
-            }
-
+            if(card.select("h5").text().toString().equals("Hello! world by ( Babuk Locker )"))
+                continue;
+            attack.getVictim().setVictimName(card.select("h5").text());
+            attack.setNoOfVisits(Integer.parseInt(card.select(".col-auto span").text()));
+            attack.setDeadlines(card.select(".published").text());
+            String moreDetails = card.attr("href");
             try {
-                Document detailPage = Jsoup.connect(mainUrl + moreDetails)
+                Document detailPage = Jsoup.connect(mainUrl.replace(".onion/",".onion") + moreDetails)
                         .timeout(60000)
                         .proxy(proxy)
                         .get();
 
                 extractDetailedInfo(attack, detailPage, proxy);
+                System.out.println(attack);
                 attacksList.add(attack);
             } catch (Exception e) {
                 System.err.println("Error processing " + attack.getVictim().getVictimName()+ ": " + e.getMessage());
@@ -102,47 +88,38 @@ public class BasheScrapper implements Scrapper {
 
 
     private void extractDetailedInfo(Attack attack, Document detailPage, Proxy proxy) throws IOException {
-
-        Element deadlineElement = detailPage.select(".deadline:contains(Deadline:)").first();
-        if (deadlineElement != null) {
-            String deadlineText = deadlineElement.text().replace("Deadline:", "").trim();
-            attack.setDeadlines(deadlineText);
-        }
-
-        // Extract views count from detail page
-        Element viewsElement = detailPage.select(".deadline:contains(Views:)").first();
-        if (viewsElement != null) {
-            attack.setNoOfVisits(Integer.parseInt(viewsElement.text().replace("Views:", "").trim()));
-        }
-
-        // Check if data is for sale (looking for "SOLD" in title)
-        attack.setForSale(false);
-
         // Extract data size
         Matcher sizeMatcher = Pattern.compile("(\\d+\\.?\\d*\\s*(TB|GB|MB|KB|tb|gb|kb|mb))").matcher(detailPage.text());
         if (sizeMatcher.find()) {
             attack.setDataSizes(sizeMatcher.group(1));
         }
 
+        // Extract data description
+        StringBuilder description = new StringBuilder();
+        for (Element p : detailPage.select("div.content-info p")) {
+            String text = p.text().toLowerCase();
+            if (text.contains("stolen") || text.contains("data") || text.contains("information")) {
+                description.append(p.text()).append("\n");
+            }
+        }
+        attack.setDescription(description.toString());
 
         // Determine category
-        attack.setCategory("Not Mentioned");
+        attack.setCategory("Double extortion Ransomware");
 
         // Check publication status
         attack.setPublished(!detailPage.select("div.download-links a").isEmpty());
 
-
-
-
         // Check sale status
         attack.setForSale(true);
-        for (Element link : detailPage.select(".block__published table:first-of-type a")) {
+
+        for (Element link : detailPage.select("div.download-links a")) {
             attack.getDownloadUrls().add(new DownloadUrl(link.attr("href")));
         }
 
 
         // Extract and store image
-        Element imgElement = detailPage.select(".photo__comm").first();
+        Element imgElement = detailPage.select("div.content-info img").first();
         if (imgElement != null) {
             String imgUrl = imgElement.attr("src");
 

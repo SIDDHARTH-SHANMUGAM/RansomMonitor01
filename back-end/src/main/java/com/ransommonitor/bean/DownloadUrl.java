@@ -52,4 +52,9 @@ public class DownloadUrl {
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
+
+    @Override
+    public String toString() {
+        return downloadUrl;
+    }
 }
